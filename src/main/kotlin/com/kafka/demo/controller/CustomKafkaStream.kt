@@ -11,28 +11,16 @@ import org.apache.kafka.streams.kstream.Produced
 class CustomKafkaStream {
     companion object {
         fun build(): Topology {
-            val valueTopic = "values"
-            val valueTopicOne = "values_one"
-            val valueTopicTwo = "values_two"
             val resultTopic = "output"
+            val topicList = arrayListOf<String>("values", "values_one", "values_two")
 
             val streamsBuilder = StreamsBuilder()
 
-            val valuesJsonStream: KStream<String, String> = streamsBuilder
-                .stream<String, String>(valueTopic, Consumed.with(Serdes.String(), Serdes.String()))
+            val allStream: KStream<String, String> =
+                streamsBuilder
+                .stream(topicList as Collection<String>?, Consumed.with(Serdes.String(), Serdes.String()))
 
-            val valuesTwoJsonStream: KStream<String, String> = streamsBuilder
-                .stream<String, String>(valueTopicOne, Consumed.with(Serdes.String(), Serdes.String()))
-
-            val valuesThreeJsonStream: KStream<String, String> = streamsBuilder
-                .stream<String, String>(valueTopicTwo, Consumed.with(Serdes.String(), Serdes.String()))
-
-            val allStream: KStream<String, String> = valuesJsonStream
-                .merge(valuesTwoJsonStream)
-
-            val mergedStream = allStream.merge(valuesThreeJsonStream)
-
-            val resStream: KStream<String, String> = mergedStream.map { _, p ->
+            val resStream: KStream<String, String> = allStream.map { _, p ->
                 KeyValue("data", p + "_output")
             }
 
